@@ -12,6 +12,9 @@ import main.constant.GameConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+
 
 public class Player {
     final static String SERVER_URL = "https://codefest.jsclub.me/";
@@ -32,8 +35,10 @@ public class Player {
 
             // This is the A* algorithm. It is used to find the shortest path between two
             // points.
-            List<Position> restrictPosition = new ArrayList<>();
-            String path = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictPosition, currentPosition, enemyPosition);
+            Set<Position> restrictPosition = new HashSet<>();
+//            restrictPosition.
+            //
+            String path = AStarSearch.aStarSearch(mapInfo.mapMatrix, new ArrayList<>(restrictPosition), currentPosition, enemyPosition);
 
             // Sending the path to the server.
             player1.move(path);
