@@ -33,14 +33,9 @@ public class Player {
             Position currentPosition = mapInfo.getCurrentPosition(player1);
             Position enemyPosition = mapInfo.getEnemyPosition(player1);
 
-            // This is the A* algorithm. It is used to find the shortest path between two
-            // points.
-            Set<Position> restrictPosition = new HashSet<>();
-//            restrictPosition.
-            //
-            String path = AStarSearch.aStarSearch(mapInfo.mapMatrix, new ArrayList<>(restrictPosition), currentPosition, enemyPosition);
+            
 
-            // Sending the path to the server.
+            StringBuilder path;
             player1.move(path);
         };
 
@@ -49,3 +44,4 @@ public class Player {
         player1.connectToServer(SERVER_URL);
     }
 }
+
