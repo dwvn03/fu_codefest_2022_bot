@@ -31,7 +31,7 @@ public class Bot {
             Position currentPosition = mapInfo.getCurrentPosition(player1);
             Position enemyPosition = mapInfo.getEnemyPosition(player1);
 
-            Player bot;
+            Player bot = new Player();
             for(Player i : mapInfo.players)
                 if(i.currentPosition == currentPosition)
                     bot = i;
@@ -85,9 +85,25 @@ public class Bot {
                 for (Position cell : targets) {
                     if (ok.containsKey(cell)) {
                         String tmpPath = ok.get(cell);
+                        int x = cell.getRow();
+                        int y = cell.getCol();
                         for(Position cell1 : targets)
                             if(cell1 != cell) {
-                                AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, cell, cell1);
+                                boolean hudge = true;
+                                int u = cell1.getRow();
+                                int v = cell1.getCol();
+                                if ((x - bot.power + 1 <= u && u <= x) || (x <= u && u <= x + bot.power - 1)) {
+                                    if (y - bot.power + 1 <= v && v <= y)
+                                        hudge = false;
+                                    else if (v <= y && y <= v + bot.power - 1)
+                                        hudge = false;
+                                }
+                                if(hudge) {
+                                    String path2 = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, cell, cell1);
+                                    if(path.isEmpty() || path2.length()+tmpPath.length() < path.length()) {
+                                        path = tmpPath + path2;
+                                    }
+                                }
                             }
                     }
                 }
@@ -99,8 +115,13 @@ public class Bot {
                             path = tmpPath;
                     }
                 }
-                if(path.isEmpty())
-                    path = ok.get(targets.get(1));
+                if(path.isEmpty()) {
+                    for(Position cell : targets)
+                        if(ok.containsKey(cell)){
+                            if(path.isEmpty() || ok.get(cell).length() < path.length())
+                                path = ok.get(cell);
+                        }
+                }
             }
 
             player1.move(path);
@@ -112,9 +133,7 @@ public class Bot {
     }
 
     private static Boolean reachable(Position n, List<Position> restrictNode) {
-        if(restrictNode.contains(n))
-            return false;
-        return true;
+        return !restrictNode.contains(n);
     }
 }
 
