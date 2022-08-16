@@ -11,7 +11,7 @@ import main.constant.GameConfig;
 import java.util.*;
 
 
-public class Player {
+public class PlayerX {
     final static String SERVER_URL = "https://codefest.jsclub.me/";
     public static int[] dx = {-1, 0, 1, 0};
     public static int[] dy = {0, -1, 0, 1};
@@ -31,6 +31,12 @@ public class Player {
             Position currentPosition = mapInfo.getCurrentPosition(player1);
             Position enemyPosition = mapInfo.getEnemyPosition(player1);
 
+            Player bot;
+            for(Player i : mapInfo.players)
+                if(i.currentPosition == currentPosition)
+                    bot = i;
+
+            /// adding restrict node
             List<Position> restrictNode = new ArrayList<>();
             for(Viruses i : mapInfo.viruses)
                 restrictNode.add(i.position);
@@ -42,6 +48,7 @@ public class Player {
             restrictNode.addAll(mapInfo.balk);
             restrictNode.addAll(mapInfo.getBombList());
 
+            /// making targets list
             ArrayList<Position> targets = new ArrayList<>();
             int n = mapInfo.size.rows;
             int m = mapInfo.size.cols;
@@ -50,7 +57,7 @@ public class Player {
                     visit[i][j] = 0;
             Deque<Position> dq = new LinkedList<>();
             dq.addFirst(currentPosition);
-            Boolean containWall = true;
+            boolean containWall = true;
             while(dq.size() != 0)
             {
                 targets.add(dq.getFirst());
@@ -70,6 +77,8 @@ public class Player {
                     }
                 }
             }
+
+            /// choosing best path
             Map<Position, String> ok = AStarSearch.getPathToAllTargets(mapInfo.mapMatrix, restrictNode, currentPosition, targets);
             String path = new String();
             if(containWall) {
@@ -84,7 +93,7 @@ public class Player {
                 }
             } else {
                 for (Position cell : targets) {
-                    if(ok.containsKey(cell) && mapInfo.[cell.getRow()][cell.getCol()] == 5) {
+                    if(ok.containsKey(cell) && mapInfo.mapMatrix[cell.getRow()][cell.getCol()] == 5) {
                         String tmpPath = ok.get(cell);
                         if(path.isEmpty() || tmpPath.length() < path.length())
                             path = tmpPath;
