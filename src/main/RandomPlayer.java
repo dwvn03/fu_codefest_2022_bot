@@ -30,7 +30,7 @@ public class RandomPlayer {
         Emitter.Listener onTickTackListener = objects -> {
             GameInfo gameInfo = GameUtil.getGameInfo(objects);
 
-            randomPlayer.move(getRandomPath(20));
+            randomPlayer.move(getRandomPath(10));
         };
 
         randomPlayer.setOnTickTackListener(onTickTackListener);
