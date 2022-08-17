@@ -37,66 +37,57 @@ public class BotCollect {
                     bot = i;
                 else botEnemy = i;
 
-
-
             /// adding restrict node
             List<Position> restrictNode = new ArrayList<>();
+            boolean havePill = false;
             for(Viruses i : mapInfo.viruses)
                 restrictNode.add(i.position);
             for(Spoil i : mapInfo.spoils)
                 if(i.spoil_type != 5)
                     restrictNode.add(new Position(i.getRow(), i.getCol()));
+                else
+                    havePill = true;
             restrictNode.addAll(mapInfo.quarantinePlace);
             restrictNode.addAll(mapInfo.teleportGate);
             restrictNode.addAll(mapInfo.balk);
-            restrictNode.addAll(mapInfo.getBombList());
-            for(Bomb cell : mapInfo.bombs) {
-                int power = 0;
-
-                if(cell.playerId.equals(bot.id))
-                    power = bot.power;
-                else
-                    power = botEnemy.power;
-
-                int x = cell.getRow();
-                int y = cell.getCol();
-                for(int j = 1; j <= power; ++j) {
-                    restrictNode.add(new Position(x+j, y));
-                    restrictNode.add(new Position(x-j, y));
-                    restrictNode.add(new Position(x, y+j));
-                    restrictNode.add(new Position(x, y-j));
-                }
-            }
 
             /// making path
-            String path = "b";
+            String path = "";
             int n = mapInfo.size.rows;
             int m = mapInfo.size.cols;
             int x = currentPosition.getRow();
             int y = currentPosition.getCol();
-            if(!mapInfo.spoils.isEmpty()) {
-                for(Spoil cellx : mapInfo.spoils){
-                    if(cellx.spoil_type != 5)
-                        continue;;
-                    Position cell = new Position(cellx.getRow(), cellx.getCol());
-                    String tmpPath = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, currentPosition, cell);
-                    if(!tmpPath.isEmpty()) {
-                        if(path.length() == 1 || path.length() < tmpPath.length()+1)
-                            path = "b" + tmpPath;
+
+            if(havePill) {
+                for(Spoil cell : mapInfo.spoils) {
+                    if (cell.spoil_type == 5) {
+                        String tmpPath = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, currentPosition, cell);
+                        if (tmpPath.isEmpty())
+                            continue;
+                        if (path.length() == 0 || path.length() > tmpPath.length())
+                            path = tmpPath;
                     }
                 }
-            }
-            for(Position cell : mapInfo.blank) {
-                String tmpPath = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, currentPosition, cell);
-                if(tmpPath.isEmpty() == false) {
-                    int u = cell.getRow();
-                    int v = cell.getCol();
-                    if(path.length() == 1 || path.length() < tmpPath.length()+1)
-                        path = "b" + tmpPath;
-
+            } else if(bot.pill > 0) {
+                for(Human cell : mapInfo.human) {
+                    String tmpPath = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, currentPosition, cell.position);
+                    if(tmpPath.isEmpty())
+                        continue;
+                    if(path.length() == 0 || path.length() > tmpPath.length())
+                        path = tmpPath;
                 }
             }
-
+            if(path.length() == 0) {
+                for(Position cell : mapInfo.blank) {
+                    if(!notAttack(cell, currentPosition, bot.power))
+                        continue;
+                    String tmpPath = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, currentPosition, cell);
+                    if(tmpPath.isEmpty())
+                        continue;
+                    if(path.length() == 0 || tmpPath.length()+1 <= path.length())
+                        path = "b" + tmpPath;
+                }
+            }
             player1.move(path);
         };
 
@@ -107,6 +98,14 @@ public class BotCollect {
 
     private static Boolean reachable(Position n, List<Position> restrictNode) {
         return !restrictNode.contains(n);
+    }
+
+    private  static  Boolean notAttack(Position end, Position sta, int power) {
+        if(end.getRow() == sta.getRow())
+            return !(sta.getCol()-power <= end.getCol() && end.getCol() <= sta.getCol()+power);
+        if(end.getCol() == sta.getCol())
+            return !(sta.getRow()-power <= end.getRow() && end.getRow() <= sta.getRow()+power);
+        return  true;
     }
 
     private static void dfs(int x, int y, int n, int m, List<Position> restrictNode){
