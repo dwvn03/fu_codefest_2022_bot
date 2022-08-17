@@ -16,7 +16,7 @@ public class Bot {
     public static int[] dx = {-1, 0, 1, 0};
     public static int[] dy = {0, -1, 0, 1};
     public static int[][] visit;
-
+    public static ArrayList<Position> targets;
     public static void main(String[] args) {
         // Creating a new Hero object with name `player1-xxx` and game id
         // `GameConfig.GAME_ID`.
@@ -49,34 +49,25 @@ public class Bot {
             restrictNode.addAll(mapInfo.getBombList());
 
             /// making targets list
-            ArrayList<Position> targets = new ArrayList<>();
+            targets = new ArrayList<>();
             int n = mapInfo.size.rows;
             int m = mapInfo.size.cols;
+            visit = new int[n][m];
             for(int i = 0; i < n; ++i)
-                for(int j = 0; j < m; ++j)
+                for(int j = 0; j < m; ++j) {
                     visit[i][j] = 0;
-            Deque<Position> dq = new LinkedList<>();
-            dq.addFirst(currentPosition);
-            boolean containWall = true;
-            while(dq.size() != 0)
-            {
-                targets.add(dq.getFirst());
-                int x = dq.getFirst().getRow();
-                int y = dq.getFirst().getCol();
-                dq.removeFirst();
-                for(int i = 0; i < 4; ++i)
-                {
-                    int u = x + dx[i];
-                    int v = y + dy[i];
-                    if(0 <= u && u < n && 0 <= v && v < m && visit[u][v] == 0 && reachable(new Position(u, v), restrictNode)) {
-                        if(mapInfo.mapMatrix[u][v] != 1) {
-                            dq.addLast(new Position(u, v));
-                            if(mapInfo.mapMatrix[u][v] != 1 && mapInfo.mapMatrix[u][v] != 0)
-                                containWall = false;
-                        }
-                    }
+                    if(mapInfo.mapMatrix[i][j] == 1)
+                        restrictNode.add(new Position(i, j));
                 }
+            boolean containWall = true;
+            dfs(currentPosition.getRow(), currentPosition.getCol(), n, m, restrictNode);
+            for(Position cell : targets) {
+                int x = cell.getRow();
+                int y = cell.getCol();
+                if (0 <= x && x < n && 0 <= y && y < m && mapInfo.mapMatrix[x][y] == 5)
+                    containWall = false;
             }
+
 
             /// choosing best path
             Map<Position, String> ok = AStarSearch.getPathToAllTargets(mapInfo.mapMatrix, restrictNode, currentPosition, targets);
@@ -84,6 +75,8 @@ public class Bot {
             if(containWall) {
                 for (Position cell : targets) {
                     if (ok.containsKey(cell)) {
+                        if(cell == currentPosition)
+                            continue;
                         String tmpPath = ok.get(cell);
                         int x = cell.getRow();
                         int y = cell.getCol();
@@ -92,16 +85,18 @@ public class Bot {
                                 boolean hudge = true;
                                 int u = cell1.getRow();
                                 int v = cell1.getCol();
-                                if ((x - bot.power + 1 <= u && u <= x) || (x <= u && u <= x + bot.power - 1)) {
-                                    if (y - bot.power + 1 <= v && v <= y)
-                                        hudge = false;
-                                    else if (v <= y && y <= v + bot.power - 1)
-                                        hudge = false;
-                                }
+                                if (u == x && (y - bot.power + 1 <= v && v <= y))
+                                    hudge = false;
+                                else if(u == x && (y <= v && v <= y + bot.power - 1))
+                                    hudge = false;
+                                else if(x <= u && u <= x + bot.power - 1 && v == y)
+                                    hudge = false;
+                                else if(x - bot.power + 1 <= u && u <= x && v == y)
+                                    hudge = false;
                                 if(hudge) {
                                     String path2 = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, cell, cell1);
-                                    if(path.isEmpty() || path2.length()+tmpPath.length() < path.length()) {
-                                        path = tmpPath + path2;
+                                    if(path.isEmpty() || path2.length()+tmpPath.length()+1 < path.length()) {
+                                        path = tmpPath + "b" + path2;
                                     }
                                 }
                             }
@@ -134,6 +129,21 @@ public class Bot {
 
     private static Boolean reachable(Position n, List<Position> restrictNode) {
         return !restrictNode.contains(n);
+    }
+
+    private static void dfs(int x, int y, int n, int m, List<Position> restrictNode){
+        visit[x][y] = 1;
+        targets.add(new Position(x, y));
+        for(int i = 0; i < 4; ++i) {
+            int u = x + dx[i];
+            int v = y + dy[i];
+            if(0 <= u && u < n && 0 <= v && v < m){
+                if(visit[u][v] == 0) {
+                    if(reachable(new Position(u, v), restrictNode))
+                        dfs(u, v, n, m, restrictNode);
+                }
+            }
+        }
     }
 }
 

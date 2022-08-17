@@ -1,5 +1,5 @@
 package main.constant;
 
 public class GameConfig {
-    public static final String GAME_ID = "3dbf9984-b0dd-49f9-8658-65893b28166e";
+    public static final String GAME_ID = "e6253580-75af-4bc5-abdc-098d6074fb33";
 }
