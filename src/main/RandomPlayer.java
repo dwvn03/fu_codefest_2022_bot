@@ -3,6 +3,7 @@ package main;
 import io.socket.emitter.Emitter;
 import jsclub.codefest.sdk.model.Hero;
 import jsclub.codefest.sdk.socket.data.GameInfo;
+import jsclub.codefest.sdk.socket.data.MapInfo;
 import jsclub.codefest.sdk.util.GameUtil;
 import main.constant.GameConfig;
 
@@ -29,8 +30,17 @@ public class RandomPlayer {
 
         Emitter.Listener onTickTackListener = objects -> {
             GameInfo gameInfo = GameUtil.getGameInfo(objects);
+            MapInfo mapInfo = gameInfo.getMapInfo();
+            int n = mapInfo.size.rows;
+            int m = mapInfo.size.cols;
+            for(int i = 0; i < n; ++i) {
+                for (int j = 0; j < m; ++j) {
+                    System.out.print(mapInfo.mapMatrix[i][j] + " ");
+                }
+                System.out.println();
+            }
 
-            randomPlayer.move(getRandomPath(10));
+            //randomPlayer.move(getRandomPath(10));
         };
 
         randomPlayer.setOnTickTackListener(onTickTackListener);

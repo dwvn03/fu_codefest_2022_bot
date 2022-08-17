@@ -32,43 +32,94 @@ public class AgentCoderOne {
 
             Position currentPosition = mapInfo.getCurrentPosition(player1);
             Position enemyPosition = mapInfo.getEnemyPosition(player1);
+            int x = currentPosition.getRow();
+            int y = currentPosition.getCol();
 
             Player bot = new Player(), botEnemy = new Player();
-            for(Player i : mapInfo.players)
-                if(i.currentPosition == currentPosition)
+            StringBuilder path = new StringBuilder();
+            for (Player i : mapInfo.players)
+                if (i.currentPosition == currentPosition)
                     bot = i;
                 else botEnemy = i;
 
-            List<Position> bombs_in_range = get_bombs_in_range(currentPosition, mapInfo.bombs, max(bot.power, botEnemy.power));
-            List<Position> surrounding_cells = get_surrounding_cells(n, m, currentPosition);
-            List<Position> valid_cells = get_valid_cells(mapInfo.mapMatrix, surrounding_cells);
-            if(bombs_in_range.contains(currentPosition)) {
-                if(!valid_cells.isEmpty()) {
-                    int index = valid_cells.size();
-                    Random rand = new Random();
-                    index = rand.nextInt(index);
-                    Position target = valid_cells.get(index);
-                    String path = move_to_cell(currentPosition, target);
-                    player1.move(path);
-                } else player1.move("x");
-            } else if(!bombs_in_range.isEmpty()) {
-                if(!valid_cells.isEmpty()) {
-                    Position target = get_safest_cell(currentPosition, max(bot.power, botEnemy.power), valid_cells, bombs_in_range);
-                    String path = move_to_cell(currentPosition, target);
-                    player1.move(path);
-                } else player1.move("x");
-            } else {
-                if(bot.lives > 0)
-                    player1.move("b");
-                else {
-                    Random rand = new Random();
-                    StringBuilder path = new StringBuilder();
-                    int random_integer = rand.nextInt(5);
-                    path.append("1234".charAt(random_integer));
-                    player1.move(path.toString());
+            for (int i = 1; i <= 10; ++i) {
+                List<Position> bombs_in_range = get_bombs_in_range(currentPosition, mapInfo.bombs, max(bot.power, botEnemy.power));
+                List<Position> surrounding_cells = get_surrounding_cells(n, m, currentPosition);
+                List<Position> valid_cells = get_valid_cells(mapInfo.mapMatrix, surrounding_cells);
+                if (bombs_in_range.contains(currentPosition)) {
+                    if (!valid_cells.isEmpty()) {
+                        int index = valid_cells.size();
+                        Random rand = new Random();
+                        index = rand.nextInt(index);
+                        Position target = valid_cells.get(index);
+                        String tmpPath = move_to_cell(currentPosition, target);
+                        path.append(tmpPath);
+                        char c = tmpPath.charAt(0);
+                        switch (c) {
+                            case '1':
+                                x++;
+                                break;
+                            case '2':
+                                x--;
+                                break;
+                            case '3':
+                                y--;
+                                break;
+                            case '4':
+                                y++;
+                                break;
+                        }
+                    } else path.append("x");
+                } else if (!bombs_in_range.isEmpty()) {
+                    if (!valid_cells.isEmpty()) {
+                        Position target = get_safest_cell(currentPosition, max(bot.power, botEnemy.power), valid_cells, bombs_in_range);
+                        String tmpPath = move_to_cell(currentPosition, target);
+                        path.append(tmpPath);
+                        char c = tmpPath.charAt(0);
+                        switch (c) {
+                            case '1':
+                                x++;
+                                break;
+                            case '2':
+                                x--;
+                                break;
+                            case '3':
+                                y--;
+                                break;
+                            case '4':
+                                y++;
+                                break;
+                        }
+                    } else path.append("x");
+                } else {
+                    if (bot.lives > 0) {
+                        path.append("b");
+                        Bomb add = new Bomb(x, y);
+                    } else {
+                        Random rand = new Random();
+                        int random_integer = rand.nextInt(5);
+                        char c = "1234".charAt(random_integer);
+                        path.append(c);
+                        switch (c) {
+                            case '1':
+                                x++;
+                                break;
+                            case '2':
+                                x--;
+                                break;
+                            case '3':
+                                y--;
+                                break;
+                            case '4':
+                                y++;
+                                break;
+                        }
+                    }
                 }
             }
+            player1.move(path.toString());
         };
+
 
         // This is the code that connects the player to the server.
         player1.setOnTickTackListener(onTickTackListener);

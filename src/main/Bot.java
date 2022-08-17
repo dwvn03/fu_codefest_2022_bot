@@ -10,6 +10,8 @@ import main.constant.GameConfig;
 
 import java.util.*;
 
+import static java.lang.Math.abs;
+
 
 public class Bot {
     final static String SERVER_URL = "https://codefest.jsclub.me/";
