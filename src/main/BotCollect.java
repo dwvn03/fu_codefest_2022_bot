@@ -114,6 +114,7 @@ public class BotCollect {
                             }
                         String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, safest_cell);
                         path.append(tmpPath);
+                        path.append("xxxx");
                     }
                 }
             }
@@ -134,7 +135,7 @@ public class BotCollect {
         for(int i = 0; i < 4; ++i) {
             int u = x + dx[i];
             int v = y + dy[i];
-            if(0 <= u && u < n && 0 <= v && v < m && visit[u][v] == 0 && !restrictNode.contains(new Position(u, v))) {
+            if(0 <= u && u < n && 0 <= v && v < m && visit[u][v] == 0 && (!restrictNode.contains(new Position(u, v)))) {
                 if(matrix[u][v] != 1 && matrix[u][v] != 2 && matrix[u][v] != 6 && matrix[u][v] != 7)
                     dfs(u, v);
             }
