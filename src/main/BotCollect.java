@@ -31,10 +31,13 @@ public class BotCollect {
             Position currentPosition = mapInfo.getCurrentPosition(player1);
             Position enemyPosition = mapInfo.getEnemyPosition(player1);
 
-            Player bot = new Player();
+            Player bot = new Player(), botEnemy = new Player();;
             for(Player i : mapInfo.players)
                 if(i.currentPosition == currentPosition)
                     bot = i;
+                else botEnemy = i;
+
+
 
             /// adding restrict node
             List<Position> restrictNode = new ArrayList<>();
@@ -47,6 +50,23 @@ public class BotCollect {
             restrictNode.addAll(mapInfo.teleportGate);
             restrictNode.addAll(mapInfo.balk);
             restrictNode.addAll(mapInfo.getBombList());
+            for(Bomb cell : mapInfo.bombs) {
+                int power = 0;
+
+                if(cell.playerId.equals(bot.id))
+                    power = bot.power;
+                else
+                    power = botEnemy.power;
+
+                int x = cell.getRow();
+                int y = cell.getCol();
+                for(int j = 1; j <= power; ++j) {
+                    restrictNode.add(new Position(x+j, y));
+                    restrictNode.add(new Position(x-j, y));
+                    restrictNode.add(new Position(x, y+j));
+                    restrictNode.add(new Position(x, y-j));
+                }
+            }
 
             /// making path
             String path = "b";
@@ -61,21 +81,8 @@ public class BotCollect {
                     Position cell = new Position(cellx.getRow(), cellx.getCol());
                     String tmpPath = AStarSearch.aStarSearch(mapInfo.mapMatrix, restrictNode, currentPosition, cell);
                     if(!tmpPath.isEmpty()) {
-                        int u = cell.getRow();
-                        int v = cell.getCol();
-                        boolean hudge = true;
-                        if (u == x && (y - bot.power + 2 <= v && v <= y))
-                            hudge = false;
-                        else if(u == x && (y <= v && v <= y + bot.power + 2))
-                            hudge = false;
-                        else if(x <= u && u <= x + bot.power + 2 && v == y)
-                            hudge = false;
-                        else if(x - bot.power + 2 <= u && u <= x && v == y)
-                            hudge = false;
-                        if(hudge) {
-                            if(path.length() == 1 || path.length() < tmpPath.length()+1)
-                                path = "b" + tmpPath;
-                        }
+                        if(path.length() == 1 || path.length() < tmpPath.length()+1)
+                            path = "b" + tmpPath;
                     }
                 }
             }
@@ -84,19 +91,9 @@ public class BotCollect {
                 if(tmpPath.isEmpty() == false) {
                     int u = cell.getRow();
                     int v = cell.getCol();
-                    boolean hudge = true;
-                    if (u == x && (y - bot.power + 2 <= v && v <= y))
-                        hudge = false;
-                    else if(u == x && (y <= v && v <= y + bot.power + 2))
-                        hudge = false;
-                    else if(x <= u && u <= x + bot.power + 2 && v == y)
-                        hudge = false;
-                    else if(x - bot.power + 2 <= u && u <= x && v == y)
-                        hudge = false;
-                    if(hudge) {
-                        if(path.length() == 1 || path.length() < tmpPath.length()+1)
-                            path = "b" + tmpPath;
-                    }
+                    if(path.length() == 1 || path.length() < tmpPath.length()+1)
+                        path = "b" + tmpPath;
+
                 }
             }
 
