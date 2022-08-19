@@ -14,7 +14,6 @@ import java.util.*;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 
-
 public class BotCollect {
     final static String SERVER_URL = "https://codefest.jsclub.me/";
     public static int[] dx = {-1, 0, 1, 0};
@@ -114,21 +113,17 @@ public class BotCollect {
                             }
                         String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, safest_cell);
                         path.append(tmpPath);
-                        path.append("xxxx");
                     }
                 }
             }
-            System.out.println(valid_cells.size());
-
-
-            player1.move(path.toString());
+            ///player1.move(path.toString());
+            player1.move("b44");
         };
 
         // This is the code that connects the player to the server.
         player1.setOnTickTackListener(onTickTackListener);
         player1.connectToServer(SERVER_URL);
     }
-
     private static void dfs(int x, int y) {
         visit[x][y] = 1;
         valid_cells.add(new Position(y, x));
@@ -141,41 +136,7 @@ public class BotCollect {
             }
         }
     }
-
     private static int mahattanDistance(Position x, Position y) {
         return  abs(x.getRow() - y.getRow()) + abs(x.getCol() - y.getCol());
     }
-
-    private  static List<Position> get_bombs_in_range(Position currentPosition, List<Bomb> Bombs, int power) {
-        List<Position> bombs_in_range = new ArrayList<>();
-        for(Bomb cell : Bombs) {
-            if(mahattanDistance(cell, currentPosition) <= power * 2)
-                bombs_in_range.add(new Position(cell.getCol(), cell.getRow()));
-        }
-        return bombs_in_range;
-    }
-
-    private static Position get_safest_cell(Position currentPosition, int power, List<Position> cells, List<Position> bombs) {
-        Position nearest = new Bomb(0, 0);
-        int distance = power * 2;
-        for(Position cell : bombs) {
-            int tmpDist = mahattanDistance(currentPosition, new Position(cell.getRow(), cell.getCol()));
-            if (tmpDist < distance) {
-                nearest = cell;
-                distance = tmpDist;
-            }
-        }
-
-        distance = 0;
-        Position safest_cell = new Position(0, 0);
-        for(Position cell : cells) {
-            int tmpDist = mahattanDistance(nearest, cell);
-            if (tmpDist > distance) {
-                safest_cell = cell;
-                distance = tmpDist;
-            }
-        }
-        return safest_cell;
-    }
 }
-
