@@ -40,7 +40,7 @@ public class RandomPlayer {
                 System.out.println();
             }
 
-            //randomPlayer.move(getRandomPath(10));
+            randomPlayer.move(getRandomPath(10));
         };
 
         randomPlayer.setOnTickTackListener(onTickTackListener);
