@@ -1,30 +1,22 @@
 package main.util;
 
-import jsclub.codefest.sdk.model.Hero;
 import jsclub.codefest.sdk.socket.data.MapInfo;
-import jsclub.codefest.sdk.socket.data.Player;
+import jsclub.codefest.sdk.socket.data.Position;
 
-import java.util.List;
-
+import java.util.ArrayList;
 public class PlayerUtils {
-    public static Player getPlayer(MapInfo mapInfo, Hero hero, boolean isSelf) {
-        List<Player> players = mapInfo.players;
-        int selfIdx = 0;
+    public static void addNonEmpty(ArrayList<String> paths, String toBeAdded) {
+        if (!toBeAdded.isEmpty()) 
+            paths.add(toBeAdded);
+    } 
 
-        if (players.get(1).id.equals(hero.getPlayerID())) {
-            selfIdx = 1;
-        }
+    public static boolean isOnExplosionNode(MapInfo mapInfo, Position heroPos) {
+        return mapInfo.getBombList().stream()
+                                        .anyMatch(pos -> pos.getCol() == heroPos.getCol() && pos.getRow() == heroPos.getRow());
+    } 
 
-        return isSelf ? players.get(selfIdx) : players.get(1 - selfIdx);
-    }
-
-    public static int getPlayerPower(MapInfo mapInfo, Hero hero, boolean isSelf) {
-        return getPlayer(mapInfo, hero, isSelf).power;
-    }
-
-    public static String evadeBomb(MapInfo mapInfo) {
-        
-
-        return "";
-    }
+    public static boolean isQuarantined(MapInfo mapInfo, Position heroPos) {
+        return mapInfo.quarantinePlace.stream()
+                                        .anyMatch(pos -> pos.getCol() == heroPos.getCol() && pos.getRow() == heroPos.getRow());
+    } 
 }
