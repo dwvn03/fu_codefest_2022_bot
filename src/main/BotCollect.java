@@ -33,29 +33,27 @@ public class BotCollect {
             MapInfo mapInfo = gameInfo.getMapInfo();
 
             // This is getting the current position of the player and the enemy position.
-            StringBuilder path = new StringBuilder();
+            String path = new String();
             matrix = mapInfo.mapMatrix;
             n = mapInfo.size.rows;
             m = mapInfo.size.cols;
             Position currentPosition = mapInfo.getCurrentPosition(player1);
             Position enemyPosition = mapInfo.getEnemyPosition(player1);
-            Player bot = new Player(), botEnemy = new Player();;
-            for(Player i : mapInfo.players)
-                if(i.currentPosition == currentPosition)
+            Player bot = new Player(), botEnemy = new Player();
+            ;
+            for (Player i : mapInfo.players)
+                if (i.currentPosition == currentPosition)
                     bot = i;
                 else botEnemy = i;
+            int range = max(bot.power, botEnemy.power);
 
             /// adding restrict node
             restrictNode = new ArrayList<>();
-            for(int i = 0; i < n; ++i)
-                for(int j = 0; j < m; ++j)
-                    if(mapInfo.mapMatrix[i][j] != 0)
-                        restrictNode.add(new Position(j, i));
+            restrictNode.addAll(mapInfo.balk);
+            restrictNode.addAll(mapInfo.walls);
+            restrictNode.addAll(mapInfo.bombs);
             for(Viruses cell : mapInfo.viruses)
                 restrictNode.add(cell.position);
-            for(Bomb cell : mapInfo.bombs)
-                if(cell.remainTime == 0)
-                    restrictNode.add(cell);
             if(bot.pill == 0)
                 for(Human cell : mapInfo.human)
                     if(cell.infected)
@@ -64,60 +62,25 @@ public class BotCollect {
             /// making valid_cells
             valid_cells = new ArrayList<>();
             visit = new int[n][m];
+            matrix = new int[n][m];
+
             for(int i = 0; i < n; ++i)
-                for(int j = 0; j < m; ++j)
+                for(int j = 0; j < m; ++j) {
                     visit[i][j] = 0;
+                    matrix[i][j] = mapInfo.mapMatrix[i][j];
+                }
             dfs(currentPosition.getRow(), currentPosition.getCol());
 
             /// making path
-            boolean ok = true;
-            for(Bomb cell : mapInfo.bombs)
-                if(cell.playerId == bot.id) {
-                    ok = false;
-                    for(int i = 1; i <= cell.remainTime; ++i)
-                        path.append("x");
-                    break;
-                }
-            if(ok) {
-                String pathPoint = "";
-                for (Spoil cell : mapInfo.spoils)
-                    if (cell.spoil_type == 5) {
+            boolean check = false;
+            if(bot.delay == 0) {
+                for(Spoil cell : mapInfo.spoils)
+                    if(valid_cells.contains(cell)) {
+                        check = true;
                         String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, cell);
-                        if (!tmpPath.isEmpty()) {
-                            if (pathPoint.length() == 0 || tmpPath.length() < pathPoint.length())
-                                pathPoint = tmpPath;
-                        }
                     }
-                for (Human cell : mapInfo.human)
-                    if (cell.infected && bot.pill > 0) {
-                        String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, cell.position);
-                        if (!tmpPath.isEmpty()) {
-                            if (pathPoint.length() == 0 || tmpPath.length() < pathPoint.length())
-                                pathPoint = tmpPath;
-                        }
-                    }
-                if (pathPoint.length() != 0)
-                    path.append(pathPoint);
-                else {
-                    /// destroy balk
-                    if (valid_cells.isEmpty())
-                        path.append("x");
-                    else {
-                        path.append("b");
-                        Position safest_cell = currentPosition;
-                        int maxDistance = 0;
-                        for (Position cell : valid_cells)
-                            if (mahattanDistance(currentPosition, cell) > maxDistance) {
-                                maxDistance = mahattanDistance(currentPosition, cell);
-                                safest_cell = cell;
-                            }
-                        String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, safest_cell);
-                        path.append(tmpPath);
-                    }
-                }
+                player1.move(path);
             }
-            ///player1.move(path.toString());
-            player1.move("b44");
         };
 
         // This is the code that connects the player to the server.
@@ -130,10 +93,8 @@ public class BotCollect {
         for(int i = 0; i < 4; ++i) {
             int u = x + dx[i];
             int v = y + dy[i];
-            if(0 <= u && u < n && 0 <= v && v < m && visit[u][v] == 0 && (!restrictNode.contains(new Position(u, v)))) {
-                if(matrix[u][v] != 1 && matrix[u][v] != 2 && matrix[u][v] != 6 && matrix[u][v] != 7)
+            if(0 <= u && u < n && 0 <= v && v < m && visit[u][v] == 0 && matrix[u][v] == 0 && (!restrictNode.contains(new Position(v, u))))
                     dfs(u, v);
-            }
         }
     }
     private static int mahattanDistance(Position x, Position y) {
