@@ -1,7 +1,6 @@
 package main;
 
 import io.socket.emitter.Emitter.Listener;
-import io.socket.emitter.Emitter;
 import jsclub.codefest.sdk.algorithm.AStarSearch;
 import jsclub.codefest.sdk.socket.data.*;
 import jsclub.codefest.sdk.util.GameUtil;
@@ -11,8 +10,7 @@ import main.constant.GameConfig;
 
 import java.util.*;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 
 public class BotCollect {
     final static String SERVER_URL = "https://codefest.jsclub.me/";
@@ -38,7 +36,7 @@ public class BotCollect {
             n = mapInfo.size.rows;
             m = mapInfo.size.cols;
             Position currentPosition = mapInfo.getCurrentPosition(player1);
-            Position enemyPosition = mapInfo.getEnemyPosition(player1);
+            //Position enemyPosition = mapInfo.getEnemyPosition(player1);
             Player bot = new Player(), botEnemy = new Player();
             ;
             for (Player i : mapInfo.players)
@@ -72,13 +70,36 @@ public class BotCollect {
             dfs(currentPosition.getRow(), currentPosition.getCol());
 
             /// making path
-            boolean check = false;
             if(bot.delay == 0) {
+                boolean check = false;
                 for(Spoil cell : mapInfo.spoils)
                     if(valid_cells.contains(cell)) {
                         check = true;
                         String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, cell);
+                        if(path.length() == 0 || tmpPath.length() < path.length())
+                            path = tmpPath;
                     }
+                if(bot.pill > 0) {
+                    for(Human cell : mapInfo.human)
+                        if(cell.infected) {
+                            check = true;
+                            String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, cell.position);
+                            if(path.length() == 0 || tmpPath.length() < path.length())
+                                path = tmpPath;
+                        }
+                }
+                if(!check) {
+                    Position safest = currentPosition;
+                    for(Position cell : valid_cells) {
+                        int Distance = mahattanDistance(currentPosition, cell);
+                        if(Distance > range + 1)
+                            safest = cell;
+                        if(cell.getCol() != currentPosition.getCol() && cell.getRow() != currentPosition.getRow())
+                            safest = cell;
+                        if(safest != currentPosition)
+                            path = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, safest);
+                    }
+                }
                 player1.move(path);
             }
         };
