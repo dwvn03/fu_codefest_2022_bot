@@ -89,30 +89,43 @@ public class Bot {
                         }
                 }
                 if(!takeCured) {
-                    boolean placeBomb = false;
-                    for(Position cell : valid_cells) {
-                        if(placeBomb)
-                            break;
-                        int x = cell.getRow();
-                        int y = cell.getCol();
-                        for(int i = 0; i < 4; ++i) {
-                            if(placeBomb)
+                    boolean saveHuman = false;
+                    for(Human cell : mapInfo.human) {
+                        if (!cell.infected && valid_cells.contains(cell.position)) {
+                            String tmpPath = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, cell.position);
+                            if(tmpPath.equals(""))
+                                continue;
+                            saveHuman = true;
+                            if (path.equals("") || tmpPath.length() < path.length())
+                                path = tmpPath;
+                        }
+                    }
+                    if(!saveHuman) {
+                        boolean placeBomb = false;
+                        for (Position cell : valid_cells) {
+                            if (placeBomb)
                                 break;
-                            int u = x + dx[i];
-                            int v = y + dy[i];
-                            if(0 <= u && u < n && 0 <= v && v < m) {
-                                if(matrix[u][v] == 2) {
-                                    for(Position cellx : valid_cells) {
-                                        if(placeBomb)
-                                            break;
-                                        if((cellx.getRow() != x && cellx.getCol() != y) || (mahatmaDistance(cell, cellx) > range)) {
-                                            String addPath = AStarSearch.aStarSearch(matrix, restrictNode, cell, cellx);
-                                            if(addPath.equals(""))
-                                                continue;
-                                            placeBomb = true;
-                                            path = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, cell);
-                                            path = path + "b";
-                                            path += addPath;
+                            int x = cell.getRow();
+                            int y = cell.getCol();
+                            for (int i = 0; i < 4; ++i) {
+                                if (placeBomb)
+                                    break;
+                                int u = x + dx[i];
+                                int v = y + dy[i];
+                                if (0 <= u && u < n && 0 <= v && v < m) {
+                                    if (matrix[u][v] == 2) {
+                                        for (Position cellx : valid_cells) {
+                                            if (placeBomb)
+                                                break;
+                                            if ((cellx.getRow() != x && cellx.getCol() != y) || (mahatmaDistance(cell, cellx) > range)) {
+                                                String addPath = AStarSearch.aStarSearch(matrix, restrictNode, cell, cellx);
+                                                if (addPath.equals(""))
+                                                    continue;
+                                                placeBomb = true;
+                                                path = AStarSearch.aStarSearch(matrix, restrictNode, currentPosition, cell);
+                                                path = path + "b";
+                                                path += addPath;
+                                            }
                                         }
                                     }
                                 }
