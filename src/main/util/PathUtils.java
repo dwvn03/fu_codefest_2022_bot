@@ -23,9 +23,9 @@ public class PathUtils {
 
     public static String pathToNearestItem(MapInfo mapInfo, Position heroPos, List<Position> restrictedNode, boolean isPill) {
         ArrayList<Position> targets = mapInfo.spoils
-                .stream()
-                .filter(spoil -> !isPill || spoil.spoil_type == Spoil.PILL)
-                .collect(Collectors.toCollection(ArrayList::new));
+                                            .stream()
+                                            .filter(spoil -> !isPill || spoil.spoil_type == Spoil.PILL)
+                                            .collect(Collectors.toCollection(ArrayList::new));
 
         Collection<String> paths = AStarSearch.getPathToAllTargets(mapInfo.mapMatrix, restrictedNode, heroPos, targets).values();
         
@@ -34,10 +34,10 @@ public class PathUtils {
 
     public static String pathToNearestHuman(MapInfo mapInfo, Position heroPos, List<Position> restrictedNode, PILL havePill) {
         ArrayList<Position> targets = mapInfo.human
-                                        .stream()
-                                        .filter(human -> human.curedRemainTime == 0 && (havePill == PILL.HAVE_PILL || !human.infected))
-                                        .map(human -> human.position)
-                                        .collect(Collectors.toCollection(ArrayList::new));
+                                            .stream()
+                                            .filter(human -> human.curedRemainTime == 0 && (havePill == PILL.HAVE_PILL || !human.infected))
+                                            .map(human -> human.position)
+                                            .collect(Collectors.toCollection(ArrayList::new));
 
         Collection<String> paths = AStarSearch.getPathToAllTargets(mapInfo.mapMatrix, restrictedNode, heroPos, targets).values();
         

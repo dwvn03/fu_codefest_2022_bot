@@ -17,6 +17,7 @@ import main.util.*;
 public class Bot {
     public static void main(String[] args) {
         Hero hero = new Hero(GameConfig.PLAYER1_ID, GameConfig.GAME_ID);
+        TimestampManager tm = new TimestampManager();
 
         Listener onTickTackListener = objects -> {
             // long startTime = System.nanoTime();
@@ -24,47 +25,48 @@ public class Bot {
 
             GameInfo gameInfo = GameUtil.getGameInfo(objects);
             MapInfo mapInfo = gameInfo.getMapInfo();
-            
-            List<Position> restrictedNode = RestrictedUtils.getRestrictedNode(mapInfo, hero, RestrictedUtils.BOMB_NOT_INCLUDED);
-            
-            Player me = mapInfo.getPlayerByKey(hero.getPlayerID());
-            Position heroPos = me.currentPosition;
-            // Position enemyPos = mapInfo.getEnemyPosition(hero);
 
-            if (PlayerUtils.isQuarantined(mapInfo, heroPos)) {
-                hero.move("x");
-                System.out.println("Quarantined");
-            } else if (PlayerUtils.isOnExplosionNode(mapInfo, heroPos)) {
-                // ne bom
-                hero.move(RandomPlayer.getRandomPath(10));
-                System.out.println("Run");
-
-            } else {    
-                RestrictedUtils.addExplosionNode(restrictedNode, mapInfo.getBombList());            
-                String pathToSpoil = PathUtils.pathToNearestItem(mapInfo, heroPos, restrictedNode, true);
-
-                if (pathToSpoil.isEmpty()) {
-                    pathToSpoil = PathUtils.pathToNearestItem(mapInfo, heroPos, restrictedNode, false);
-                }
-
-                PlayerUtils.addNonEmpty(paths, pathToSpoil);
+            tm.call(gameInfo.timestamp, 300L, () -> {
+                List<Position> restrictedNode = RestrictedUtils.getRestrictedNode(mapInfo, hero, RestrictedUtils.BOMB_NOT_INCLUDED);
                 
-                String pathToHuman = me.pill > 0
-                                    ? PathUtils.pathToNearestHuman(mapInfo, heroPos, restrictedNode, PathUtils.PILL.HAVE_PILL)
-                                    : PathUtils.pathToNearestHuman(mapInfo, heroPos, restrictedNode, PathUtils.PILL.NO_PILL);
+                Player me = mapInfo.getPlayerByKey(hero.getPlayerID());
+                Position heroPos = me.currentPosition;
+                // Position enemyPos = mapInfo.getEnemyPosition(hero);
 
-                PlayerUtils.addNonEmpty(paths, pathToHuman);
-            
-                if (paths.isEmpty()) {
-                    String pathToBalk = PathUtils.pathToNearestBalk(mapInfo, heroPos, restrictedNode);
-                    PlayerUtils.addNonEmpty(paths, pathToBalk + "b");
+                if (PlayerUtils.isQuarantined(mapInfo, heroPos)) {
+                    System.out.println("Quarantined");
+                } else if (PlayerUtils.isOnExplosionNode(mapInfo, heroPos)) {
+                    // ne bom
+                    hero.move(RandomPlayer.getRandomPath(10));
+                    System.out.println("Run");
+
+                } else {    
+                    RestrictedUtils.addExplosionNode(restrictedNode, mapInfo.getBombList());            
+                    String pathToSpoil = PathUtils.pathToNearestItem(mapInfo, heroPos, restrictedNode, true);
+
+                    if (pathToSpoil.isEmpty()) {
+                        pathToSpoil = PathUtils.pathToNearestItem(mapInfo, heroPos, restrictedNode, false);
+                    }
+
+                    PlayerUtils.addNonEmpty(paths, pathToSpoil);
+                    
+                    String pathToHuman = me.pill > 0
+                                        ? PathUtils.pathToNearestHuman(mapInfo, heroPos, restrictedNode, PathUtils.PILL.HAVE_PILL)
+                                        : PathUtils.pathToNearestHuman(mapInfo, heroPos, restrictedNode, PathUtils.PILL.NO_PILL);
+
+                    PlayerUtils.addNonEmpty(paths, pathToHuman);
+                
+                    if (paths.isEmpty()) {
+                        String pathToBalk = PathUtils.pathToNearestBalk(mapInfo, heroPos, restrictedNode);
+                        PlayerUtils.addNonEmpty(paths, pathToBalk + "b");
+                    }
+
+                    hero.move(
+                        PathUtils.shortestPath(paths)
+                    );
                 }
-
-                hero.move(
-                    PathUtils.shortestPath(paths)
-                );
-            }
-
+            });
+            
             // long endTime = System.nanoTime();
             // System.out.println((endTime - startTime) / 1000000);
         };

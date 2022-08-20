@@ -6,8 +6,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jsclub.codefest.sdk.model.Hero;
+import jsclub.codefest.sdk.socket.data.Human;
 import jsclub.codefest.sdk.socket.data.MapInfo;
 import jsclub.codefest.sdk.socket.data.Position;
+import jsclub.codefest.sdk.socket.data.Viruses;
 
 public class RestrictedUtils {
     public static Set<Position> PERMANENT_RESTRICTED_NODE_SET = ConcurrentHashMap.newKeySet();
@@ -52,7 +54,14 @@ public class RestrictedUtils {
     }
 
     public static void addInfectedNode(Set<Position> restrictedNode, MapInfo mapInfo) {
-        mapInfo.viruses.stream().forEach(virus -> restrictedNode.add(virus.position));
-        mapInfo.getDhuman().stream().forEach(infectedHuman -> restrictedNode.add(infectedHuman.position));
+        for (Viruses virus : mapInfo.viruses) {
+            restrictedNode.add(virus.position);
+            restrictedNode.add(virus.position.nextPosition(virus.direction, 1));
+        }
+        
+        for (Human human : mapInfo.getDhuman()) {
+            restrictedNode.add(human.position);
+            restrictedNode.add(human.position.nextPosition(human.direction, 1));
+        }
     }
 }
